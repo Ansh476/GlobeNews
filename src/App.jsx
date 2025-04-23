@@ -22,7 +22,6 @@ function App() {
   ])
   return (
     <>
-    
     <RouterProvider router={routerapp}></RouterProvider>
     </>
   )
