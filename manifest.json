@@ -1,7 +1,7 @@
 {
     "name": "GlobeNews",
     "short_name": "GNews",
-    "start_url": "ani.html",
+    "start_url": "/",
     "scope": "./",
     "icons": [
         {
