@@ -1,0 +1,23 @@
+{
+    "name": "GlobeNews",
+    "short_name": "GNews",
+    "start_url": "ani.html",
+    "scope": "./",
+    "icons": [
+        {
+          "src": "/public/globicon.svg",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any"
+        },
+        {
+          "src": "/public/globicon.svg",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "maskable"
+        }
+      ],
+      "theme_color": "#ffd31d",
+      "background_color": "#333",
+    "display": "standalone"
+  }
