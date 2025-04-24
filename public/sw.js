@@ -10,85 +10,81 @@ const urlsToCache = [
   '/newspaperlogo-removebg-preview.png'
 ];
 
-// Install event: Cache static assets
-self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing...');
+// Install event
+self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Caching assets...');
       return cache.addAll(urlsToCache);
     })
   );
-  self.skipWaiting();
 });
 
-// Activate event: Cleanup old caches
-self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activating...');
+// Activate event
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('[Service Worker] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames.map((name) => {
+          if (name !== CACHE_NAME) {
+            return caches.delete(name);
           }
         })
-      );
-    })
+      )
+    )
   );
-  self.clients.claim();
 });
 
-// Fetch event: Cache-first strategy
-// Fetch event: Cache-first strategy with logging
-self.addEventListener('fetch', (event) => {
-    console.log('[Service Worker] Fetching:', event.request.url);
-  
+// Fetch event
+self.addEventListener("fetch", (event) => {
+  const requestURL = new URL(event.request.url);
+
+  if (requestURL.origin === self.location.origin) {
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
         if (cachedResponse) {
-          console.log('[Service Worker] Serving from cache:', event.request.url);
+          console.log("[Service Worker] Fetch successful:", event.request.url);
           return cachedResponse;
         }
-  
+
         return fetch(event.request)
           .then((networkResponse) => {
-            console.log('[Service Worker] Fetch successful!', event.request.url);
+            if (!networkResponse || networkResponse.status !== 200) {
+              return networkResponse;
+            }
+
             return caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, networkResponse.clone());
+              console.log("[Service Worker] Fetch successful:", event.request.url);
               return networkResponse;
             });
-          })
-          .catch((error) => {
-            console.error('[Service Worker] Fetch failed:', error);
-            return new Response('Network error!', { status: 408 });
           });
       })
     );
-  });
+  }
+  // No log for external requests
+});
 
 // Handle Push Notifications
 self.addEventListener('push', (event) => {
-    if (!event.data) {
-      console.error('[Service Worker] Push event has NO data!');
-      return;
-    }
-  
-    const data = event.data.json();
-    console.log('[Service Worker] Push received:', data); // Log full push data
-    console.log('[Service Worker] Notification Message:', data.message); // Log message only
-  
-    const options = {
-      body: data.message || 'Breaking News!',
-      icon: '/newspaperlogo.png',
-      badge: '/newspaperlogo-removebg-preview.png'
-    };
-  
-    event.waitUntil(
-      self.registration.showNotification(data.title || 'News Alert', options)
-    );
-  });
+  if (!event.data) {
+    console.error('[Service Worker] Push event has NO data!');
+    return;
+  }
+
+  const data = event.data.json();
+  console.log('[Service Worker] Push received:', data);
+  console.log('[Service Worker] Notification Message:', data.message);
+
+  const options = {
+    body: data.message || 'Breaking News!',
+    icon: '/globicon.svg',
+    badge: '/globicon.svg'
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'News Alert', options)
+  );
+});
 
 // Handle Notification Click
 self.addEventListener('notificationclick', (event) => {
